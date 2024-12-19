@@ -9,6 +9,7 @@
 library (readxl)
 library(tidyverse)
 
+# WITAM WITAM, barto
 # Siema tu będzie nowy commit
 
 data <- read.csv(paste(getwd(), "/Video_Games_Sales.csv", sep = ""), header = T)
