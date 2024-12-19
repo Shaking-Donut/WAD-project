@@ -11,7 +11,7 @@ library(tidyverse)
 
 # Siema tu będzie nowy commit
 
-data <- read.csv("C:/Users/jan/Desktop/!PRZEPROWADZKA/!STUDIA/Semestr 3/WAD/Projekt/Video_Games_Sales_as_at_22_Dec_2016.csv", header = T)
+data <- read.csv(paste(getwd(), "/Video_Games_Sales.csv", sep = ""), header = T)
 View(data)
 
 #UWAGA! W BAZIE MOGĄ WYSTĘPOWAĆ KILKA RAZY TE SAME TYTUŁY ALE NA INNYCH PLATFORMACH (np. GTA)
