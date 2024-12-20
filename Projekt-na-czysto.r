@@ -61,6 +61,16 @@ data %>%
   ggplot(aes(x=Critic_Score))+
   geom_histogram(binwidth = 2)
 
+data_clear_critic <- data %>% 
+  filter(!is.na(data$Critic_Score))
+
+max(data_clear_critic$Critic_Score) - min(data_clear_critic$Critic_Score) #Odp: 85
+IQR(data_clear_critic$Critic_Score) #Odp: 19
+var(data_clear_critic$Critic_Score) #Odp: 194.27
+sd(data_clear_critic$Critic_Score) #Odp: 13.94
+mean(abs(data_clear_critic$Critic_Score-mean(data_clear_critic$Critic_Score))) #Odp: 11.16
+
+
 
 data %>%
   filter(Platform=="PC") %>%
@@ -77,13 +87,16 @@ data %>%
   ggplot(aes(x=User_Score))+
   geom_histogram(binwidth = 0.2)
 
-#Wszędzie poza XOne użytkonicy oceniają produkcje podobnie/lepiej od krytyków
+#Wszędzie poza XOne użytkownicy oceniają produkcje podobnie/lepiej od krytyków
+data_clear_user <- data %>% 
+  filter(!is.na(data$User_Score))
 
-#tu zmieniamy płeć, zmieniłem też geometrię z histogramu na wykres skrzynkowy
-data %>% 
-  filter(PROGRAM=="Elite Men") %>% 
-  ggplot(aes(x=SWIM_s))+
-  geom_boxplot()
+max(data_clear_user$User_Score) - min(data_clear_user$User_Score) #Odp: 9.7
+IQR(data_clear_user$User_Score) #Odp: 1.8
+var(data_clear_user$User_Score) #Odp: 2.25
+sd(data_clear_user$User_Score) #Odp: 1.5
+mean(abs(data_clear_user$User_Score-mean(data_clear_user$User_Score))) #Odp: 1.15
+
 
 data %>%
   filter(Platform=="PC") %>%
