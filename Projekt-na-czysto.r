@@ -46,7 +46,6 @@ summary(data$User_Score)
 summary(data$Critic_Score)
 summary(data$Global_Sales) #widać, że 3 kwartyl wskazuje na niecałe 500tys przedanych sztuk gdy max wynosi ponad 82 miliony
 
-#porównajmy rokłady czasu pływania - osobno kobiety i mężczyźni
 data %>%
   filter(Platform=="PC") %>%
   ggplot(aes(x=Critic_Score))+
@@ -143,6 +142,46 @@ data %>%
 #===========================================================================================================
 #===========================================================================================================
 #ANALIZA SKUPIEŃ
+
+library(tidyverse)
+library(factoextra)
+
+#Przykład 1 - metoda K-średnich
+#kmeans z pakietu stats
+#wymaga jako arguemntu macierzy numerycznej lub ramki ze zmiennymi numerycznymi
+#nie lubi przypadków odstających
+#sprawdza się w przypadku klastrów o kulistym kształcie
+
+wybrane <- select(data,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
+wybrane_stand <- scale(wybrane)
+
+wynik1 <- kmeans(wybrane_stand, 6, nstart = 5) #zalecany argument nstart
+#ilość kalstrów metodą prób i błędów - jet to metoda ateoretyczna
+print(wynik1)
+#pokazuje klastry w stosunku do średnich wyników - dużo szybsi, dużo wwolniejsi, trochę wolniejsi i trochę szybsi
+#suma wewnętrznych odcyleń sum kwadratów powinna być niewielka
+
+fviz_cluster(wynik1, data = wybrane_stand)
+
+#Wybór liczby klastrów metodą gap statistic
+install.packages("cluster")
+library(cluster)
+#set.seed(20)
+gap <- clusGap(wybrane_stand, kmeans, K.max = 8, B=500)
+fviz_gap_stat(gap)
+#interseują nas wysokie wyniki w postaci globalnego albo lokalnego maksimum
+#metoda niestabilna
+
+#ostateczne rozwiązanie z 2 klastrami
+#dla zapewnienia odtwarzalności
+set.seed(3)
+wynik1 <- kmeans(wybrane_stand, 2, nstart = 3)
+print(wynik1)
+fviz_cluster(wynik1, data=wybrane_stand)
+
+#co mamy w klastrach
+data$klaster <- wynik1$cluster
+#table(data$klaster, data$xxxxxx)
 
 
 #===========================================================================================================
