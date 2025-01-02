@@ -44,7 +44,11 @@ hist(data$Global_Sales, breaks=100,prob=T) #Tylko pojedyncze tytuły zarabiają 
 summary(data$Year_of_Release)
 summary(data$User_Score)
 summary(data$Critic_Score)
-summary(data$Global_Sales) #widać, że 3 kwartyl wskazuje na niecałe 500tys przedanych sztuk gdy max wynosi ponad 82 miliony
+summary(data$Global_Sales) #widać, że 1 i 3 kwartyl wskazują na przedział 0.06 - 0.47 mln przedanych sztuk gdy max wynosi ponad 82 miliony
+
+# TYM PODPUNKCIE BĘDZIEMY PODDAWAĆ ANALIZIE GŁÓWNIE 3 ATRYBUTY - OCENĘ KRYTYKÓW, OCENĘ UŻYTKOWNIKÓW I SPRZEDAŻ GLOBALNĄ
+
+#W CELU UPROSZCZENIA ANALIZY CZASEM BĘDZIEMY POŁUGIWAĆ SIĘ PODZIAŁEM NA 3 NAJWIĘKSZE PLATFORMY - PC, PS4 I XONE
 
 data %>%
   filter(Platform=="PC") %>%
@@ -98,6 +102,7 @@ sd(data_clear_user$User_Score) #Odp: 1.5
 mean(abs(data_clear_user$User_Score-mean(data_clear_user$User_Score))) #Odp: 1.15
 
 
+
 data %>%
   filter(Platform=="PC") %>%
   ggplot(aes(x=Critic_Score))+
@@ -129,6 +134,34 @@ data %>%
   filter(Platform=="XOne") %>%
   ggplot(aes(x=User_Score))+
   geom_boxplot()
+
+
+Q1cs <- quantile(data_clear_critic$Critic_Score, .25)
+Q3cs <- quantile(data_clear_critic$Critic_Score, .75)
+subset(data_clear_critic, data_clear_critic$Critic_Score<(Q1cs - 1.5*IQR(data_clear_critic$Critic_Score)) | data_clear_critic$Critic_Score>(Q3cs + 1.5*IQR(data_clear_critic$Critic_Score))) #Odp: 83
+
+Q1us <- quantile(data_clear_user$User_Score, .25)
+Q3us <- quantile(data_clear_user$User_Score, .75)
+subset(data_clear_user, data_clear_user$User_Score<(Q1us - 1.5*IQR(data_clear_user$User_Score)) | data_clear_user$User_Score>(Q3us + 1.5*IQR(data_clear_user$User_Score))) #Odp: 305
+
+#Możemy zauażyć, że pomimo mniejszej liczby obserwacji oceny użytkowników mają znacznie więcej przypadków odstających niż krytycy
+
+
+data %>%
+  filter(Platform=="PC") %>%
+  subset(Global_Sales<(quantile(Global_Sales, .25) - 1.5*IQR(Global_Sales)) | Global_Sales>(quantile(Global_Sales, .75) + 1.5*IQR(Global_Sales)))#Odp: 146
+
+data %>%
+  filter(Platform=="PS4") %>%
+  subset(Global_Sales<(quantile(Global_Sales, .25) - 1.5*IQR(Global_Sales)) | Global_Sales>(quantile(Global_Sales, .75) + 1.5*IQR(Global_Sales))) #Odp: 55
+
+data %>%
+  filter(Platform=="XOne") %>%
+  subset(Global_Sales<(quantile(Global_Sales, .25) - 1.5*IQR(Global_Sales)) | Global_Sales>(quantile(Global_Sales, .75) + 1.5*IQR(Global_Sales))) #Odp: 26
+
+library("dplyr")
+data %>% group_by(Platform) %>% summarize(count=n()) %>%  print(n = 100)
+#Wiedząc, że gier na dane platformy mamy: PC - 974, PS4 - 393, XOne - 247 wiać że w kwestii globlanej sprzedaży kopii statystycznie najwięcej przypadków odstających występuje na PC. Trochę mniej na PS4 a najmniej takich przypadków ystępuje na XOne
 
 #===========================================================================================================
 #===========================================================================================================
