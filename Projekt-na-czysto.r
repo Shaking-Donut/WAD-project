@@ -201,13 +201,20 @@ library(factoextra)
 wybrane <- select(data,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
 wybrane_stand <- scale(wybrane)
 
-wynik1 <- kmeans(wybrane_stand, 6, nstart = 5) #zalecany argument nstart
+wynik1 <- kmeans(wybrane_stand, 8, nstart = 5) #zalecany argument nstart
 #ilość kalstrów metodą prób i błędów - jet to metoda ateoretyczna
 print(wynik1)
-#pokazuje klastry w stosunku do średnich wyników - dużo szybsi, dużo wwolniejsi, trochę wolniejsi i trochę szybsi
+#pokazuje klastry w stosunku do średnich wyników
 #suma wewnętrznych odcyleń sum kwadratów powinna być niewielka
 
 fviz_cluster(wynik1, data = wybrane_stand)
+
+#Na tym etapie na podstawie wykresu i danych przypuszczam, że wymiar 1 (wyjaśniający aż 67,3%) może być związany z udziałem rynku Ameryki Północnej
+#Wydaje się to być bardzo ensone patrząc że nie licząc Chin, USSA jest największym rynkiem gier cyfrowych
+
+
+#UWAGA! Przy tylu obserwacjach poniższe metody obliczeniowe wykonują się bardzo wolno/wcale
+
 
 #Wybór liczby klastrów metodą gap statistic
 install.packages("cluster")
