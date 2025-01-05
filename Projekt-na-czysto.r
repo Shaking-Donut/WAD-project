@@ -163,6 +163,12 @@ library("dplyr")
 data %>% group_by(Platform) %>% summarize(count=n()) %>%  print(n = 100)
 #Wiedząc, że gier na dane platformy mamy: PC - 974, PS4 - 393, XOne - 247 wiać że w kwestii globlanej sprzedaży kopii statystycznie najwięcej przypadków odstających występuje na PC. Trochę mniej na PS4 a najmniej takich przypadków ystępuje na XOne
 
+
+prop.table(table(data$Platform))*100
+prop.table(table(data$Year_of_Release))*100
+sort(prop.table(table(data$Publisher))*100, decreasing = TRUE)[1:5]
+sort(prop.table(table(data$Developer))*100, decreasing = TRUE)[1:6]
+sort(prop.table(table(data$Rating))*100, decreasing = TRUE)
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
