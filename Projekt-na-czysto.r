@@ -243,6 +243,26 @@ data$klaster <- wynik1$cluster
 #table(data$klaster, data$xxxxxx)
 
 
+
+
+#przykład 2 - metoda PAM - klastrowanie wokół medoidów
+#lepiej się sprawdza w analizowaniu klastrów nieregularnych
+wynik2 <- pam(wybrane_stand, 8)
+print(wynik2)
+fviz_cluster(wynik2, data = wybrane_stand)
+
+fviz_nbclust(wybrane_stand, pam, method = "wss")
+
+fviz_nbclust(wybrane_stand, pam, method = "silhouette")
+
+gap2 <- clusGap(wybrane_stand, pam, K.max = 8)
+fviz_gap_stat(gap2)
+
+#czy 2 klastry to optymalna liczba?
+fviz_nbclust(wybrane_stand, pam, method = "wss")
+gap2 <- clusGap(wybrane_stand, pam, K.max = 2)
+fviz_gap_stat(gap2)
+
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
