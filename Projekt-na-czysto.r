@@ -227,7 +227,7 @@ install.packages("cluster")
 library(cluster)
 #set.seed(20)
 gap <- clusGap(wybrane_stand, kmeans, K.max = 8, B=500)
-fviz_gap_stat(gap)
+fviz_gap_stat(gap) # plik -> analiza_skupien.png
 #interseują nas wysokie wyniki w postaci globalnego albo lokalnego maksimum
 #metoda niestabilna
 
@@ -251,4 +251,49 @@ data$klaster <- wynik1$cluster
 #===========================================================================================================
 #REGRESJA
 
+# przygotowanie danych pod regresję
+data_clear_critic_user <- data %>% 
+  filter(!is.na(data$Critic_Score) & !is.na(data$User_Score))
 
+data_clear_critic_user <- data_clear_critic_user %>% 
+  mutate(Critic_Score = Critic_Score / 10) # wyskalowanie ocen krytyków do skali 0-10 tak jak w przypadku użytkowników 
+
+# na tym etapie dane są już czyste, 
+
+library("ggplot2")
+ggplot(data_clear_critic_user, aes(x = Critic_Score)) + 
+  geom_boxplot() +
+  labs(title = "Boxplot ocen krytyków") +
+  theme_minimal()
+
+ggplot(data_clear_critic_user, aes(x = User_Score)) +
+  geom_boxplot() +
+  labs(title = "Boxplot ocen użytkowników") +
+  theme_minimal()
+
+ggplot(data_clear_critic_user, aes(x = Critic_Score)) +
+  geom_histogram() +
+  labs(title = "Histogram ocen krytyków") +
+  theme_minimal()
+
+ggplot(data_clear_critic_user, aes(x = User_Score)) +
+  geom_histogram() +
+  labs(title = "Histogram ocen użytkowników") +
+  theme_minimal()
+
+# w porównaniu histogramu ocen krytyków i użytkowników widać, że oceny krytyków znacznie lepiej wpisują się w rozkład normalny
+# na boxplotach również nie zauważamy dużych wartości odstających, wszystkie mieszczą się w przedziale 0-10, jednak znaczna większość ocen jest w przedziale 6-8 w przypadku zarówno krytyków jak i użytkowników.
+
+# analiza korelacji
+corr <- cor(data_clear_critic_user$Critic_Score, data_clear_critic_user$User_Score) # 0.5809
+# korelacja jest umiarkowana, co sugeruje, że oceny krytyków i użytkowników są ze sobą powiązane, ale nie są to takie same oceny
+
+# sprawdzenie liniowości zależności pomiędzy zmienną zależną i zmiennymi niezależnymi
+ggplot(data_clear_critic_user, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  labs(title = "Zależność ocen krytyków i użytkowników") +
+  theme_minimal()
+
+
+model_regresji <- lm(Global_Sales ~ Critic_Score + User_Score + Year_of_Release + Genre, data = data_clear_critic_user)
+summary(model_regresji)
