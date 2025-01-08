@@ -9,9 +9,6 @@
 library (readxl)
 library(tidyverse)
 
-# WITAM WITAM, barto
-# Siema tu będzie nowy commit
-
 data <- read.csv(paste(getwd(), "/Video_Games_Sales.csv", sep = ""), header = T)
 View(data)
 
@@ -29,26 +26,51 @@ data <- data %>%
   mutate (User_Score = as.numeric(User_Score))
 #UWAGA! W obu zmiennych mamy wartości N/A
 
-#sprawdźmy jakim obiektem jest nowa zmienna
+#sprawdźmy jakim obiektem są nowe zmienne
 class(data$Year_of_Release)
 class(data$User_Score)
 
+#-----------------------------------------------------------------------------------------------------------
+
 #typowa wizualizacja rozkładu zmiennej numerycznej - histogram
-hist(data$Year_of_Release, breaks=40) #większość gier w bazie jest z okolic 2007, 2008
+summary(data$Year_of_Release)
+hist(data$Year_of_Release, breaks=40) 
+sort(prop.table(table(data$Year_of_Release))*100, decreasing = TRUE)
+#większość gier w bazie jest z okolic 2007, 2008
+#Pokrywa się to to z analizą danych z Wikipedii: https://gamrconnect.vgchartz.com/thread.php?id=248467
+#ALE dane te są najprawdopodobniej bardzo nieprecyzyjne ze względu na rynek cyfrowy (np. samego Steama): https://www.statista.com/statistics/552623/number-games-released-steam/
+
+library(moments)
+summary(data$User_Score)
 hist(data$User_Score, breaks=10) #Najczęstsza ocena użytkowników - 8-9/10
+
+summary(data$Critic_Score)
 hist(data$Critic_Score, breaks=10) #Najczęstsza ocena krytyków - 70-80/100 - trochę mniej niż u użytkoników
+
+skewness(data$User_Score, na.rm = TRUE)
+skewness(data$Critic_Score, na.rm = TRUE)
+
+kurtosis(data$User_Score, na.rm = TRUE)
+kurtosis(data$Critic_Score, na.rm = TRUE)
+#Widać że histogram użytkowników jest bardziej lewoskośny a wyniki w nim są bardziej zróżnicowane niż w histogramie krytyków
+
+summary(data$Global_Sales) #widać, że 1 i 3 kwartyl wskazują na przedział 0.06 - 0.47 mln przedanych sztuk gdy max wynosi ponad 82 miliony
 hist(data$Global_Sales, breaks=100,prob=T) #Tylko pojedyncze tytuły zarabiają więcej
 
+sort(prop.table(table(data$Platform))*100, decreasing = TRUE) #Jeżeli chodzi o konole to 2 pierwsze pozycje (PS2 i Nintedo DS) zdają się być zgodne z danymi z Wikipedii: https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles
 
-#do oceny wizualnej rozkładu dodajemy kilka miar
-summary(data$Year_of_Release)
-summary(data$User_Score)
-summary(data$Critic_Score)
-summary(data$Global_Sales) #widać, że 1 i 3 kwartyl wskazują na przedział 0.06 - 0.47 mln przedanych sztuk gdy max wynosi ponad 82 miliony
+sort(prop.table(table(data$Publisher))*100, decreasing = TRUE)[1:5] #Electronic Arts, Activision, Namco Bandai Games, Ubisoft, Konami Digital Entertainment
+sort(prop.table(table(data$Developer))*100, decreasing = TRUE)[1:6] #Ubisoft, EA Sports, EA Canada, Konami, Capcom
+#Zarówno w rynku wydawniczym jak i deweloperkim EA jest (łącznie) największym graczem w branży
+
+sort(prop.table(table(data$Rating))*100, decreasing = TRUE) #Zgodnie z systemem ratingu ESRB: https://www.esrb.org/ratings-guide/
+#Najwięcej gier dla wszystkich, nastolatków i dojrzałych a najmniej tylko dla dorosłych
+
+#-----------------------------------------------------------------------------------------------------------
 
 # TYM PODPUNKCIE BĘDZIEMY PODDAWAĆ ANALIZIE GŁÓWNIE 3 ATRYBUTY - OCENĘ KRYTYKÓW, OCENĘ UŻYTKOWNIKÓW I SPRZEDAŻ GLOBALNĄ
 
-#W CELU UPROSZCZENIA ANALIZY CZASEM BĘDZIEMY POŁUGIWAĆ SIĘ PODZIAŁEM NA 3 NAJWIĘKSZE PLATFORMY - PC, PS4 I XONE
+#W CELU UPROSZCZENIA ANALIZY CZASEM BĘDZIEMY POSŁUGIWAĆ SIĘ PODZIAŁEM NA 3 NAJNOWSZE PLATFORMY UJĘTE W BAZIE - PC, PS4 I XONE
 
 data %>%
   filter(Platform=="PC") %>%
@@ -56,18 +78,41 @@ data %>%
   geom_histogram(binwidth = 2)
 
 data %>%
+  filter(Platform=="PC") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2)
+
+#Użytkownicy oceniają gry na PC częściej wyżej niż krytycy
+
+data %>%
   filter(Platform=="PS4") %>%
   ggplot(aes(x=Critic_Score))+
   geom_histogram(binwidth = 2)
+
+data %>%
+  filter(Platform=="PS4") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2)
+
+#Użytkownicy oceniają gry na PS4 w miarę podobnie jak krytycy
 
 data %>%
   filter(Platform=="XOne") %>%
   ggplot(aes(x=Critic_Score))+
   geom_histogram(binwidth = 2)
 
+data %>%
+  filter(Platform=="XOne") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2)
+
+#XOne ydaje się być jedyną platformą  tym zestawieniu gdzie to krytycy oceniają zazwyczaj produkcje podobnie/lepiej od użytkowników
+
+
 data_clear_critic <- data %>% 
   filter(!is.na(data$Critic_Score))
 
+summary(data_clear_critic$Critic_Score)
 max(data_clear_critic$Critic_Score) - min(data_clear_critic$Critic_Score) #Odp: 85
 IQR(data_clear_critic$Critic_Score) #Odp: 19
 var(data_clear_critic$Critic_Score) #Odp: 194.27
@@ -75,38 +120,34 @@ sd(data_clear_critic$Critic_Score) #Odp: 13.94
 mean(abs(data_clear_critic$Critic_Score-mean(data_clear_critic$Critic_Score))) #Odp: 11.16
 
 
-
-data %>%
-  filter(Platform=="PC") %>%
-  ggplot(aes(x=User_Score))+
-  geom_histogram(binwidth = 0.2)
-
-data %>%
-  filter(Platform=="PS4") %>%
-  ggplot(aes(x=User_Score))+
-  geom_histogram(binwidth = 0.2)
-
-data %>%
-  filter(Platform=="XOne") %>%
-  ggplot(aes(x=User_Score))+
-  geom_histogram(binwidth = 0.2)
-
-#Wszędzie poza XOne użytkownicy oceniają produkcje podobnie/lepiej od krytyków
 data_clear_user <- data %>% 
   filter(!is.na(data$User_Score))
 
+summary(data_clear_user$User_Score)
 max(data_clear_user$User_Score) - min(data_clear_user$User_Score) #Odp: 9.7
 IQR(data_clear_user$User_Score) #Odp: 1.8
 var(data_clear_user$User_Score) #Odp: 2.25
 sd(data_clear_user$User_Score) #Odp: 1.5
 mean(abs(data_clear_user$User_Score-mean(data_clear_user$User_Score))) #Odp: 1.15
 
-
+#Możemy spróbować na podstawie powyższych danych wyciągnąć pewne wnioski.
+#Oceny użytkowników mają wyższą zarówno medianę jak i średnią. Mają również trochę większe zarówno odchylenie standardowe.
+#Krytycy mają mniejszy rozstęp choć trochę większyrozstęp ćwiartkowy
+#Na podstaie tego i poprzenich analiz można zaryzykoać stwierdzenie, że użytkownicy są skłonni ystawiać wyższe oceny, ale rónież bardziej różnorodne
+#(najnższe wystawiane oceny przez użytkowników są niższe niż te wystawiane przez krytyków)
+#-----------------------------------------------------------------------------------------------------------
 
 data %>%
   filter(Platform=="PC") %>%
   ggplot(aes(x=Critic_Score))+
   geom_boxplot()
+
+data %>%
+  filter(Platform=="PC") %>%
+  ggplot(aes(x=User_Score))+
+  geom_boxplot()
+
+
 
 data %>%
   filter(Platform=="PS4") %>%
@@ -114,27 +155,25 @@ data %>%
   geom_boxplot()
 
 data %>%
+  filter(Platform=="PS4") %>%
+  ggplot(aes(x=User_Score))+
+  geom_boxplot()
+
+
+
+data %>%
   filter(Platform=="XOne") %>%
   ggplot(aes(x=Critic_Score))+
   geom_boxplot()
 
 
-
-data %>%
-  filter(Platform=="PC") %>%
-  ggplot(aes(x=User_Score))+
-  geom_boxplot()
-
-data %>%
-  filter(Platform=="PS4") %>%
-  ggplot(aes(x=User_Score))+
-  geom_boxplot()
-
 data %>%
   filter(Platform=="XOne") %>%
   ggplot(aes(x=User_Score))+
   geom_boxplot()
 
+#Powyższe ykresy nie pokazują jakichś znaczących różnic między ocenami krytyków a użytkowników na danych platformach
+#Poszukajmy dalej:
 
 Q1cs <- quantile(data_clear_critic$Critic_Score, .25)
 Q3cs <- quantile(data_clear_critic$Critic_Score, .75)
@@ -161,14 +200,9 @@ data %>%
 
 library("dplyr")
 data %>% group_by(Platform) %>% summarize(count=n()) %>%  print(n = 100)
-#Wiedząc, że gier na dane platformy mamy: PC - 974, PS4 - 393, XOne - 247 wiać że w kwestii globlanej sprzedaży kopii statystycznie najwięcej przypadków odstających występuje na PC. Trochę mniej na PS4 a najmniej takich przypadków ystępuje na XOne
+#Wiedząc, że gier na dane platformy mamy: PC - 974, PS4 - 393, XOne - 247 wiać że w kwestii globlanej sprzedaży kopii statystycznie najwięcej przypadków odstających występuje na PC. Trochę mniej na PS4 a najmniej takich przypadków występuje na XOne
 
 
-prop.table(table(data$Platform))*100
-prop.table(table(data$Year_of_Release))*100
-sort(prop.table(table(data$Publisher))*100, decreasing = TRUE)[1:5]
-sort(prop.table(table(data$Developer))*100, decreasing = TRUE)[1:6]
-sort(prop.table(table(data$Rating))*100, decreasing = TRUE)
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
