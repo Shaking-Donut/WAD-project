@@ -59,6 +59,9 @@ hist(data$Global_Sales, breaks=100,prob=T) #Tylko pojedyncze tytuły zarabiają 
 
 sort(prop.table(table(data$Platform))*100, decreasing = TRUE) #Jeżeli chodzi o konole to 2 pierwsze pozycje (PS2 i Nintedo DS) zdają się być zgodne z danymi z Wikipedii: https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles
 
+sort(prop.table(table(data$Genre))*100, decreasing = TRUE) #Widać, że najbbardziej popularne są tutaj gry z dużą ilością akcji a najgorzej radzą sobie gry strategiczne i logiczne
+#Różni się to od nowszych danych co może wskazywać na zmieniające się trendy w branży: https://rocketbrush.com/blog/most-popular-video-game-genres-in-2024-revenue-statistics-genres-overview
+
 sort(prop.table(table(data$Publisher))*100, decreasing = TRUE)[1:5] #Electronic Arts, Activision, Namco Bandai Games, Ubisoft, Konami Digital Entertainment
 sort(prop.table(table(data$Developer))*100, decreasing = TRUE)[1:6] #Ubisoft, EA Sports, EA Canada, Konami, Capcom
 #Zarówno w rynku wydawniczym jak i deweloperkim EA jest (łącznie) największym graczem w branży
