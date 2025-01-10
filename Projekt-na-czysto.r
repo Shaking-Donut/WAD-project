@@ -41,6 +41,13 @@ sort(prop.table(table(data$Year_of_Release))*100, decreasing = TRUE)
 #ALE dane te są najprawdopodobniej bardzo nieprecyzyjne ze względu na rynek cyfrowy (np. samego Steama): https://www.statista.com/statistics/552623/number-games-released-steam/
 
 library(moments)
+
+summary(data$User_Count)
+hist(data$User_Count, breaks=100) #Widać bardzo duży rozsztrzał w ilości oceniających. Mediana to 24 a śrdenia to 162!
+
+summary(data$Critic_Count)
+hist(data$Critic_Count, breaks=20) #Zazwyczaj grę ocenia w trochę ponad 20 krytyków
+
 summary(data$User_Score)
 hist(data$User_Score, breaks=10) #Najczęstsza ocena użytkowników - 8-9/10
 
