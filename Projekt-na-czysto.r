@@ -209,7 +209,7 @@ data %>%
   subset(Global_Sales<(quantile(Global_Sales, .25) - 1.5*IQR(Global_Sales)) | Global_Sales>(quantile(Global_Sales, .75) + 1.5*IQR(Global_Sales))) #Odp: 26
 
 library("dplyr")
-data %>% group_by(Platform) %>% summarize(count=n()) %>%  print(n = 100)
+data %>% group_by(Platform) %>% summarize(count=n()) %>% arrange(desc(count)) %>%  print(n = 100)
 #Wiedząc, że gier na dane platformy mamy: PC - 974, PS4 - 393, XOne - 247 wiać że w kwestii globlanej sprzedaży kopii statystycznie najwięcej przypadków odstających występuje na PC. Trochę mniej na PS4 a najmniej takich przypadków występuje na XOne
 
 
@@ -229,6 +229,126 @@ data %>% group_by(Platform) %>% summarize(count=n()) %>%  print(n = 100)
 #===========================================================================================================
 #===========================================================================================================
 #ANALIZA 2 ZMIENNYCH
+
+
+
+#przede wszystkim tworzymy obiekt bez braków danych w tych ocenach
+data_clear_all <- data %>% 
+  drop_na()
+#wstępna analiza macierzą korelacji
+library(corrplot)
+data_clear_all %>% 
+  select(Year_of_Release, NA_Sales, EU_Sales, JP_Sales, Other_Sales, Global_Sales, Critic_Score, Critic_Count, User_Score, User_Count) %>% 
+  cor(method = "spearman") %>% 
+  corrplot(method = "color")
+
+#zbadajmy jak oceny urzytkowników i krytyków mają się do siebie
+#korelacja r persona wynosi 0.58, więc występuje
+cor(data_clear_all$Critic_Score, data_clear_all$User_Score)
+
+#ale jak to wygląda na wykresie?
+library(ggpointdensity)
+library(viridis)
+data_clear_all %>% 
+  ggplot (aes(x=Critic_Score, y=User_Score))+
+  geom_point()+
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm")
+# mamy dużo danych i korelacja jest widoczna, ale dane są mocno rozrzucone
+
+#sprawdźmy jak to wygląda na wybranych platformach (8 najpopularniejszych w zbiorze):
+data_clear_all %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  ggplot (aes(x=Critic_Score, y=User_Score))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  geom_pointdensity() +
+  scale_color_viridis() +
+  facet_wrap(~Platform, nrow = 4)
+#na oko na pc korelacja jest najmniej widoczna, a jak to wygląda w liczbach?
+data_clear_all %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  group_by(Platform) %>%
+  summarize(korelacja = cor(User_Score, Critic_Score)) %>% 
+  ungroup()
+#zgodnie z wykresami najmocniej korelacja występuje w przypadku PS1 i Wii (które są na marginesie najstarszymi z tych platform), a najsłabsza dla PC
+
+#sprawdźmy teraz jak kolejno opinie krytuków i urzytkowników korelują ze sprzedarzą globalną
+data_clear_all %>% 
+  summarise(
+    kKrytyków = cor(Critic_Score, Global_Sales),
+    kUrzytkowników = cor(User_Score, Global_Sales)
+  )
+#co ciekawe obie korelacje są niskie, ale ta krytyków jest prawie 3x większa od korelacji urzytkowników, co sugeruje że krytycy mają  znacznie większy wpływ na sprzedarz
+#powtórzmy zaboieg z grupowaniem
+data_clear_all %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  group_by(Platform) %>%
+  summarise(
+    kKrytyków = cor(Critic_Score, Global_Sales),
+    kUrzytkowników = cor(User_Score, Global_Sales)
+  ) %>% 
+  ungroup()
+
+#Oceny urzytkowników wydają się mieć korelację tylko w przypadku PS1, za to w przypadku krytyków korelacja ta jest mocno zauważalna przy PS3 i PS1
+#Ciekawy jest natomiast przypadek PC, gdzie korelacja między ocenami urzytkowników, a sprzedażą jest praktycznie zerowa
+#Przyjżyjmy się temu bliżej...
+
+data_clear_all %>% 
+  filter(Platform == "PC") %>% 
+  ggplot (aes(x=User_Score, y=Global_Sales))+
+  geom_point()+
+  geom_smooth(method = "lm")
+#co ciekawe w przypadku każdego stopnia oceny występują dobrze i źle sprzedające się gry
+#spróbujmy otfiltrować gry o najlepszej sprzedarzy (>2mln)
+
+data_clear_all %>% 
+  filter(Platform == "PC") %>% 
+  filter(Global_Sales < 2) %>% 
+  ggplot (aes(x=User_Score, y=Global_Sales))+
+  geom_point()+
+  geom_smooth(method = "lm")
+
+#nic się nie zmienia...
+
+data_clear_all %>% 
+  summarise(Ameryka_płn = cor(Year_of_Release, NA_Sales),
+            Europa = cor(Year_of_Release, EU_Sales),
+            Japonia = cor(JP_Sales, Year_of_Release),
+            Inne = cor(Other_Sales, Year_of_Release),
+            Globalne = cor(Global_Sales, Year_of_Release))
+#co ciekawe rok wydania gry nie ma żadnej korelacji z jej sprzedażą
+
+#A jak wyglądają korelacje sprzedaży w regionach?
+
+data_clear_all %>% 
+  select(NA_Sales, EU_Sales, JP_Sales, Other_Sales, Global_Sales) %>% 
+  cor() %>% 
+  corrplot(method = "number")
+
+#jak widzimy rynek amerykański i europejski są dość podobne i najbardziej wpływają one na sprzedaż globalną
+#rynek japoński jest wyraźnie inny i nie ma on takiego znaczenia
+
+cor(data_clear_all$User_Score, data_clear_all$Year_of_Release, method = "spearman")
+
+data_clear_all %>% 
+  ggplot (aes(x=User_Score, y=Year_of_Release))+
+  geom_point()+
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm")
+
+data_clear_all %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  ggplot (aes(x=User_Score, y=Year_of_Release))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  geom_pointdensity() +
+  scale_color_viridis() +
+  facet_wrap(~Platform, nrow = 4)
+
+#opisać
 
 
 #===========================================================================================================
