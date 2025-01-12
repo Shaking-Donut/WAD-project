@@ -182,7 +182,7 @@ data %>%
   ggplot(aes(x=User_Score))+
   geom_boxplot()
 
-#Powyższe wykresy nie pokazują jakichś znaczących różnic między ocenami krytyków a użytkowników na danych platformach
+#Powyższe ykresy nie pokazują jakichś znaczących różnic między ocenami krytyków a użytkowników na danych platformach
 #Poszukajmy dalej:
 
 Q1cs <- quantile(data_clear_critic$Critic_Score, .25)
@@ -380,12 +380,6 @@ library(factoextra)
 wybrane <- select(data,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
 wybrane_stand <- scale(wybrane)
 
-
-
-
-
-
-
 wynik1 <- kmeans(wybrane_stand, 8, nstart = 5) #zalecany argument nstart
 #ilość kalstrów metodą prób i błędów - jet to metoda ateoretyczna
 print(wynik1)
@@ -421,9 +415,6 @@ fviz_cluster(wynik1, data=wybrane_stand)
 data$klaster <- wynik1$cluster
 #table(data$klaster, data$xxxxxx)
 
-
-
-
 #przykład 2 - metoda PAM - klastrowanie wokół medoidów
 #lepiej się sprawdza w analizowaniu klastrów nieregularnych
 wynik2 <- pam(wybrane_stand, 8)
@@ -443,13 +434,11 @@ gap2 <- clusGap(wybrane_stand, pam, K.max = 2)
 fviz_gap_stat(gap2)
 
 # :(
-
 wybrane2 <- data_clear_all %>%
   filter(Platform == "PC") %>% 
   select("Critic_Score", "User_Score", "Global_Sales")
 #przy większych kategoriach pomaga
 #wybrane2 <- wybrane2[sample(nrow(wybrane2), 500), ]
-
 IQR <- IQR(wybrane2$Critic_Score)
 low <- quantile(wybrane2$Critic_Score, 0.25) - 1.5*IQR
 up <- quantile(wybrane2$Critic_Score, 0.75) + 1.5*IQR
@@ -465,13 +454,9 @@ low <- quantile(wybrane2$Global_Sales, 0.25) - 1.5*IQR
 up <- quantile(wybrane2$Global_Sales, 0.75) + 1.5*IQR
 outliers <- which(wybrane2$Global_Sales < low | wybrane2$Global_Sales > up)
 wybrane2 <- wybrane2[-outliers, ]
-
 wybrane2 <- scale(wybrane2)
-
-
 gap <- clusGap(wybrane2, pam, K.max = 8, B=50)
 fviz_gap_stat(gap)
-
 wyniki3 <- pam(wybrane2, 3)
 fviz_cluster(wyniki3)
 
