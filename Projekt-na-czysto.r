@@ -242,7 +242,7 @@ data_clear_all %>%
   cor(method = "spearman") %>% 
   corrplot(method = "color")
 
-#zbadajmy jak oceny urzytkowników i krytyków mają się do siebie
+#zbadajmy jak oceny uzytkowników i krytyków mają się do siebie
 #korelacja r persona wynosi 0.58, więc występuje
 cor(data_clear_all$Critic_Score, data_clear_all$User_Score)
 
@@ -274,11 +274,11 @@ data_clear_all %>%
   ungroup()
 #zgodnie z wykresami najmocniej korelacja występuje w przypadku PS1 i Wii (które są na marginesie najstarszymi z tych platform), a najsłabsza dla PC
 
-#sprawdźmy teraz jak kolejno opinie krytuków i urzytkowników korelują ze sprzedarzą globalną
+#sprawdźmy teraz jak kolejno opinie krytuków i uzytkowników korelują ze sprzedarzą globalną
 data_clear_all %>% 
   summarise(
     kKrytyków = cor(Critic_Score, Global_Sales, method = "spearman"),
-    kUrzytkowników = cor(User_Score, Global_Sales, method = "spearman")
+    kUzytkowników = cor(User_Score, Global_Sales, method = "spearman")
   )
 #korelacje wydają się być nieliniowe, gdyż korelacja spearmana daje znacznie wyższy wynik niz persona
 
@@ -287,12 +287,12 @@ data_clear_all %>%
   group_by(Platform) %>%
   summarise(
     kKrytyków = cor(Critic_Score, Global_Sales, method = "spearman"),
-    kUrzytkowników = cor(User_Score, Global_Sales, method = "spearman")
+    kUzytkowników = cor(User_Score, Global_Sales, method = "spearman")
   ) %>% 
   ungroup()
 
-#Korelacje występują, w przypadku ocen krytyków są zawsze silniejsze niż w przypadku urzytkowników
-#Ciekawy jest natomiast przypadek PC, gdzie korelacja między ocenami urzytkowników, a sprzedażą jest praktycznie zerowa
+#Korelacje występują, w przypadku ocen krytyków są zawsze silniejsze niż w przypadku uzytkowników
+#Ciekawy jest natomiast przypadek PC, gdzie korelacja między ocenami uzytkowników, a sprzedażą jest praktycznie zerowa
 #Przyjżyjmy się temu bliżej...
 
 data_clear_all %>% 
