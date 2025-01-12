@@ -182,7 +182,7 @@ data %>%
   ggplot(aes(x=User_Score))+
   geom_boxplot()
 
-#Powyższe ykresy nie pokazują jakichś znaczących różnic między ocenami krytyków a użytkowników na danych platformach
+#Powyższe wykresy nie pokazują jakichś znaczących różnic między ocenami krytyków a użytkowników na danych platformach
 #Poszukajmy dalej:
 
 Q1cs <- quantile(data_clear_critic$Critic_Score, .25)
@@ -396,7 +396,6 @@ fviz_cluster(wynik1, data = wybrane_stand)
 
 
 #Wybór liczby klastrów metodą gap statistic
-install.packages("cluster")
 library(cluster)
 #set.seed(20)
 gap <- clusGap(wybrane_stand, kmeans, K.max = 8, B=500)
