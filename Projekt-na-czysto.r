@@ -377,8 +377,14 @@ library(factoextra)
 #nie lubi przypadków odstających
 #sprawdza się w przypadku klastrów o kulistym kształcie
 
-wybrane <- select(data,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
+wybrane <- select(data_clear_all,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
 wybrane_stand <- scale(wybrane)
+
+
+
+
+
+
 
 wynik1 <- kmeans(wybrane_stand, 8, nstart = 5) #zalecany argument nstart
 #ilość kalstrów metodą prób i błędów - jet to metoda ateoretyczna
@@ -434,6 +440,39 @@ fviz_gap_stat(gap2)
 fviz_nbclust(wybrane_stand, pam, method = "wss")
 gap2 <- clusGap(wybrane_stand, pam, K.max = 2)
 fviz_gap_stat(gap2)
+
+# :(
+
+wybrane2 <- data_clear_all %>%
+  filter(Platform == "PC") %>% 
+  select("Critic_Score", "User_Score", "Global_Sales")
+#przy większych kategoriach pomaga
+#wybrane2 <- wybrane2[sample(nrow(wybrane2), 500), ]
+
+IQR <- IQR(wybrane2$Critic_Score)
+low <- quantile(wybrane2$Critic_Score, 0.25) - 1.5*IQR
+up <- quantile(wybrane2$Critic_Score, 0.75) + 1.5*IQR
+outliers <- which(wybrane2$Critic_Score < low | wybrane2$Critic_Score > up)
+wybrane2 <- wybrane2[-outliers, ]
+IQR <- IQR(wybrane2$User_Score)
+low <- quantile(wybrane2$User_Score, 0.25) - 1.5*IQR
+up <- quantile(wybrane2$User_Score, 0.75) + 1.5*IQR
+outliers <- which(wybrane2$User_Score < low | wybrane2$User_Score > up)
+wybrane2 <- wybrane2[-outliers, ]
+IQR <- IQR(wybrane2$Global_Sales)
+low <- quantile(wybrane2$Global_Sales, 0.25) - 1.5*IQR
+up <- quantile(wybrane2$Global_Sales, 0.75) + 1.5*IQR
+outliers <- which(wybrane2$Global_Sales < low | wybrane2$Global_Sales > up)
+wybrane2 <- wybrane2[-outliers, ]
+
+wybrane2 <- scale(wybrane2)
+
+
+gap <- clusGap(wybrane2, pam, K.max = 8, B=50)
+fviz_gap_stat(gap)
+
+wyniki3 <- pam(wybrane2, 3)
+fviz_cluster(wyniki3)
 
 #===========================================================================================================
 #===========================================================================================================
