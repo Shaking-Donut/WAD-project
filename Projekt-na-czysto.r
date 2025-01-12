@@ -242,7 +242,7 @@ data_clear_all %>%
   cor(method = "spearman") %>% 
   corrplot(method = "color")
 
-#zbadajmy jak oceny użytkowników i krytyków mają się do siebie
+#zbadajmy jak oceny uzytkowników i krytyków mają się do siebie
 #korelacja r persona wynosi 0.58, więc występuje
 cor(data_clear_all$Critic_Score, data_clear_all$User_Score)
 
@@ -274,25 +274,25 @@ data_clear_all %>%
   ungroup()
 #zgodnie z wykresami najmocniej korelacja występuje w przypadku PS1 i Wii (które są na marginesie najstarszymi z tych platform), a najsłabsza dla PC
 
-#sprawdźmy teraz jak kolejno opinie krytuków i urzytkowników korelują ze sprzedarzą globalną
+#sprawdźmy teraz jak kolejno opinie krytuków i uzytkowników korelują ze sprzedarzą globalną
 data_clear_all %>% 
   summarise(
-    kKrytyków = cor(Critic_Score, Global_Sales),
-    kUrzytkowników = cor(User_Score, Global_Sales)
+    kKrytyków = cor(Critic_Score, Global_Sales, method = "spearman"),
+    kUzytkowników = cor(User_Score, Global_Sales, method = "spearman")
   )
-#co ciekawe obie korelacje są niskie, ale ta krytyków jest prawie 3x większa od korelacji urzytkowników, co sugeruje że krytycy mają  znacznie większy wpływ na sprzedarz
-#powtórzmy zaboieg z grupowaniem
+#korelacje wydają się być nieliniowe, gdyż korelacja spearmana daje znacznie wyższy wynik niz persona
+
 data_clear_all %>% 
   filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
   group_by(Platform) %>%
   summarise(
-    kKrytyków = cor(Critic_Score, Global_Sales),
-    kUrzytkowników = cor(User_Score, Global_Sales)
+    kKrytyków = cor(Critic_Score, Global_Sales, method = "spearman"),
+    kUzytkowników = cor(User_Score, Global_Sales, method = "spearman")
   ) %>% 
   ungroup()
 
-#Oceny urzytkowników wydają się mieć korelację tylko w przypadku PS1, za to w przypadku krytyków korelacja ta jest mocno zauważalna przy PS3 i PS1
-#Ciekawy jest natomiast przypadek PC, gdzie korelacja między ocenami urzytkowników, a sprzedażą jest praktycznie zerowa
+#Korelacje występują, w przypadku ocen krytyków są zawsze silniejsze niż w przypadku uzytkowników
+#Ciekawy jest natomiast przypadek PC, gdzie korelacja między ocenami uzytkowników, a sprzedażą jest praktycznie zerowa
 #Przyjżyjmy się temu bliżej...
 
 data_clear_all %>% 
@@ -330,6 +330,8 @@ data_clear_all %>%
 #jak widzimy rynek amerykański i europejski są dość podobne i najbardziej wpływają one na sprzedaż globalną
 #rynek japoński jest wyraźnie inny i nie ma on takiego znaczenia
 
+
+#sprawdźmy ostatnią ciekawą rzecz z macierzy korelacji: ujemną korelację roku wydania gry z ocenami urzytkowników
 cor(data_clear_all$User_Score, data_clear_all$Year_of_Release, method = "spearman")
 
 data_clear_all %>% 
@@ -338,6 +340,13 @@ data_clear_all %>%
   geom_pointdensity() +
   scale_color_viridis() +
   geom_smooth(method = "lm")
+#korelacja jest wyraźnie ujemna, ale zobaczmy jak to wygląda na poszczególnych platformach
+
+data_clear_all %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  group_by(Platform) %>% 
+  summarise(korelacja = cor(User_Score, Year_of_Release, method = "spearman")) %>% 
+  ungroup()
 
 data_clear_all %>% 
   filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
@@ -348,7 +357,7 @@ data_clear_all %>%
   scale_color_viridis() +
   facet_wrap(~Platform, nrow = 4)
 
-#opisać
+#Ciekawym wydaje się fakt, że jedynie na PC, korelacja jest zauważalnie wysoka (z lekkim wyjątkiem PS1), co oznacza że na komputerach osobistych gracze stają się z czasem zauważalnie bardziej krytyczni niż na konsolach
 
 
 #===========================================================================================================
