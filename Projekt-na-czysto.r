@@ -451,6 +451,8 @@ library(tidyverse)
 library(dplyr)
 library(lmtest)
 library(car)
+library(ggpointdensity)
+library(viridis)
 
 # =====================
 # !!! to może się powtarzać z analizą pojedynczych zmiennych na początku !!!
@@ -556,6 +558,7 @@ durbinWatsonTest(model_exp_critic_user_ps2)
 regression_data_ps2 <- na.omit(regression_data_ps2)
 
 model_exp_critic_user_ps2 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
+regression_data_ps2$pred_critic <- predict(model_exp_critic_user_ps2, newdata = regression_data_ps2)
 
 ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
@@ -563,3 +566,6 @@ ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
   scale_color_viridis() +
   geom_line(aes(y = pred_critic), size = 1, color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+hist(regression_data_ps2$Critic_Score)
+hist(regression_data_ps2$User_Score)
