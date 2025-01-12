@@ -579,17 +579,26 @@ plot(model_exp_critic_user_ps2)
 durbinWatsonTest(model_exp_critic_user_ps2)
 # nadal bardzo silna autokorelacja dodatnia danych, chociaż mniejsza niż w przypadku pojedynczych zmiennych
 
-regression_data_ps2 <- na.omit(regression_data_ps2)
+par(mfrow = c(1, 1))
 
-model_exp_critic_user_ps2 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
-regression_data_ps2$pred_critic <- predict(model_exp_critic_user_ps2, newdata = regression_data_ps2)
+model_exp <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
+summary(model_exp)
+# zmienna User_Score jest nieistotna statystycznie - nie ma rzeczywistego wpływu na sprzedaż globalną
+durbinWatsonTest(model_exp)
+# autokorelacja jest na poziomie 0.7 - bardzo wysoka
+shapiro.test(model_exp$residuals)
+# według testu Shapiro-Wilka rozkład reszt znacząco odbiega od rozkładu normalnego
+hist(model_exp$residuals, main = "Histogram Reszt", xlab = "Reszty", breaks = 30)
+# histogram reszt również wskazuje na to, że nie są one zbyt dobrze rozłożone
+# możemy wrócić model do jednej zmiennej - oceny krytyków
+
+model_exp <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
+regression_data_ps2$pred <- predict(model_exp, newdata = regression_data_ps2)
 
 ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
-  geom_line(aes(y = pred_critic), size = 1, color = "red") +
+  geom_line(aes(y = pred), size = 1, color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
 
-hist(regression_data_ps2$Critic_Score)
-hist(regression_data_ps2$User_Score)
