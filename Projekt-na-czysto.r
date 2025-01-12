@@ -377,7 +377,7 @@ library(factoextra)
 #nie lubi przypadków odstających
 #sprawdza się w przypadku klastrów o kulistym kształcie
 
-wybrane <- select(data_clear_all,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
+wybrane <- select(data,c("NA_Sales", "EU_Sales", "JP_Sales", "Other_Sales"))
 wybrane_stand <- scale(wybrane)
 
 
@@ -402,6 +402,7 @@ fviz_cluster(wynik1, data = wybrane_stand)
 
 
 #Wybór liczby klastrów metodą gap statistic
+install.packages("cluster")
 library(cluster)
 #set.seed(20)
 gap <- clusGap(wybrane_stand, kmeans, K.max = 8, B=500)
@@ -489,6 +490,8 @@ library(tidyverse)
 library(dplyr)
 library(lmtest)
 library(car)
+library(ggpointdensity)
+library(viridis)
 
 # =====================
 # !!! to może się powtarzać z analizą pojedynczych zmiennych na początku !!!
@@ -503,7 +506,7 @@ data_clear_critic_user <- data_clear_critic_user %>%
 # na tym etapie dane są już czyste, 
 # wybieramy zmienne do modelu regresji
 regression_data <- data_clear_critic_user %>% 
-  select(Critic_Score, User_Score, Global_Sales)
+  select(Critic_Score, User_Score, Global_Sales, Platform, Year_of_Release)
 
 
 ggplot(data_clear_critic_user, aes(x = Critic_Score)) + 
@@ -531,3 +534,77 @@ ggplot(data_clear_critic_user, aes(x = User_Score)) +
 # w porównaniu histogramu ocen krytyków i użytkowników widać, że oceny krytyków znacznie lepiej wpisują się w rozkład normalny
 # na boxplotach również nie zauważamy dużych wartości odstających, wszystkie mieszczą się w przedziale 0-10, jednak znaczna większość ocen jest w przedziale 6-8 w przypadku zarówno krytyków jak i użytkowników.
 
+c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")
+
+regression_data_ps2 <- regression_data %>% 
+  filter(Platform == "PS2") %>% 
+  na.omit()
+
+ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+ggplot(data = regression_data_ps2, aes(x = User_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm") +
+  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną - PS2", x = "Ocena użytkowników", y = "Sprzedaż globalna")
+
+model_exp_critic_ps2 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
+summary(model_exp_critic_ps2)
+regression_data_ps2$pred_critic <- predict(model_exp_critic_ps2, newdata = regression_data_ps2)
+
+ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_line(aes(y = pred_critic), size = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+
+par(mfrow = c(2,2))
+par(mar = c(3,3,2,2))
+
+plot(model_exp_critic_ps2)
+regression_data_ps2
+
+regression_data_ps2 <- regression_data_ps2 %>% 
+  filter(Global_Sales < 10)
+
+model_exp_critic_ps2 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
+summary(model_exp_critic_ps2)
+
+plot(model_exp_critic_ps2)
+durbinWatsonTest(model_exp_critic_ps2)
+# mocna autokorelacja dodatnia danych
+
+model_exp_user_ps2 <- lm(Global_Sales ~ exp(User_Score), data = regression_data_ps2)
+summary(model_exp_user_ps2)
+plot(model_exp_user_ps2)
+durbinWatsonTest(model_exp_user_ps2)
+# jeszcze większa autokorelacja danych
+
+model_exp_critic_user_ps2 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
+summary(model_exp_critic_user_ps2)
+plot(model_exp_critic_user_ps2)
+durbinWatsonTest(model_exp_critic_user_ps2)
+# nadal bardzo silna autokorelacja dodatnia danych, chociaż mniejsza niż w przypadku pojedynczych zmiennych
+
+regression_data_ps2 <- na.omit(regression_data_ps2)
+
+model_exp_critic_user_ps2 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
+regression_data_ps2$pred_critic <- predict(model_exp_critic_user_ps2, newdata = regression_data_ps2)
+
+ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_line(aes(y = pred_critic), size = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+hist(regression_data_ps2$Critic_Score)
+hist(regression_data_ps2$User_Score)
