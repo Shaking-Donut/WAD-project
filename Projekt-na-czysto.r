@@ -224,10 +224,18 @@ data %>% group_by(Platform) %>% summarize(count=n()) %>% arrange(desc(count)) %>
 # Rozkład gier w czasie tylko se zmieniam na prezke
 hist(data$Year_of_Release, breaks = 40, col = "#a9dfd0", main = "Game Release Date", xlab = "Year") 
 
-# troche głupie ale byłem ciekaw, bo jest inna dystrybucja co jest dziwne
-data %>% 
-  ggplot(aes(x=Year_of_Release))+
-  geom_histogram()
+# Tutaj odfiltrowuje wartości NA, bo kod się psuł i wykresy były dziwne
+data_yor <- data %>%
+  filter(is.na(Year_of_Release) != TRUE)
+
+# Troche głupie, ale niby jeden z trzech ggplot'ów :)
+data_yor %>%
+  ggplot(aes(x = Year_of_Release)) +
+  geom_histogram(binwidth = diff(range(data_yor$Year_of_Release)) / 40, fill = "#a9dfd0", color = "black") +
+  labs(title = "Game Release Date", x = "Year", y = "Frequency") +
+  theme_minimal()
+
+
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
