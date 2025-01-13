@@ -661,10 +661,18 @@ par(mar = c(3,3,2,2))
 plot(model_final)
 par(mfrow = c(1, 1))
 
+# dodajmy jeszcze przedziały ufności
+conf_data <- data.frame(
+  Global_Sales = regression_data_ps3$Global_Sales,
+  Critic_Score_pred = regression_data_ps3$pred,
+  conf_low = predict(model_final, newdata = regression_data_ps3, interval = "confidence")[,"lwr"],
+  conf_high = predict(model_final, newdata = regression_data_ps3, interval = "confidence")[,"upr"]
+)
+
 ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
+  geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
   geom_line(aes(y = pred), linewidth = 1, color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
-
