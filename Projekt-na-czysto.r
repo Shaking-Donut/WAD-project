@@ -747,7 +747,7 @@ bioshock <- data.frame(Critic_Score = 8.8, Name = "Bioshock 2", Global_Sales = 1
 bioshock$pred <- predict(model_final, newdata = cod)
 predict(model_final, newdata = cod, interval = "confidence")
 # według naszego modelu ta gra powinna sprzedać pomiędzy 1.02 a 1.16 mln kopii z najbardziej prawdopodobną wartością - 1.09 mln
-# wartość sprzedaży tej gry w rzeczywistości wynosiła 9.36 mln kopii
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 1.54 mln kopii
 
 new_data <- rbind(rock_band, naruto, bioshock)
 
