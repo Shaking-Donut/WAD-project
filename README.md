@@ -1,4 +1,4 @@
-# Projekt Zaliczeniowy na WAD - 3 Semestr Informatyki Społecznej
+# Projekt Zaliczeniowy na WAD - 3 SEMESTR IFS
 
 Oprócz kodu z zajęć, w kodzie czystym analizy można znaleźć:
 - Analizę eksploracyjną pojedynczych zmiennych
