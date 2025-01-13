@@ -250,6 +250,19 @@ hist(data$Critic_Score, breaks = 10, col = "#a9dfd0", main = "Critic Review Scor
 # Histogram sprzedaży globalnych
 hist(data$Global_Sales , breaks = 100, prob = T, col = "#a9dfd0", main = "Density of Global Sales", xlab = "Units Sold Globally (in Millions)")
 
+# Histogram sprzedaży globalnych z odcięciem wartości odstających
+Global_Sales <- data %>% 
+  select("Global_Sales")
+
+IQR <- IQR(Global_Sales$Global_Sales)
+low <- quantile(Global_Sales$Global_Sales, 0.25) - 1.5*IQR
+up <- quantile(Global_Sales$Global_Sales, 0.75) + 1.5*IQR
+outliers <- which(Global_Sales$Global_Sales < low | Global_Sales$Global_Sales > up)
+Global_Sales <- Global_Sales[-outliers, ]
+
+hist(Global_Sales, breaks = 100, prob = T, col = "#a9dfd0", main = "Density of Global Sales", xlab = "Units Sold Globally (in Millions)")
+summary(Global_Sales)
+
 # Porównania konsol na prezke 
 data %>%
   filter(Platform=="PC") %>%
