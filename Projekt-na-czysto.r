@@ -556,6 +556,7 @@ library(lmtest)
 library(car)
 library(ggpointdensity)
 library(viridis)
+library(ggrepel)
 
 # =====================
 # !!! to może się powtarzać z analizą pojedynczych zmiennych na początku !!!
@@ -725,4 +726,34 @@ ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   scale_color_viridis() +
   geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
   geom_line(aes(y = pred), linewidth = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+# przykład predykcji na przykładzie grę, która nie wchodzi w nasz model - Rock Band 2 (2008) (Opinia Krytyków - 91) (https://www.metacritic.com/game/rock-band-2/)
+rock_band <- data.frame(Critic_Score = 9.1, Name = "Rock Band 2", Global_Sales = 1.49)
+rock_band$pred <- predict(model_final, newdata = rock_band)
+predict(model_final, newdata = rock_band, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 1.24 a 1.45 mln kopii z najbardziej prawdopodobną wartością - 1.35 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 1.49 mln kopii - czyli troszkę więcej niż przewidział nasz model na podstawie oceny krytyków
+
+# kolejny przykład - Naruto Shippuden: Ultimate Ninja Storm 3 (2013) (Opinia Krytyków - 77) (https://www.metacritic.com/game/naruto-shippuden-ultimate-ninja-storm-3)
+naruto <- data.frame(Critic_Score = 7.7, Name = "Naruto Shippuden: Ultimate Ninja Storm 3", Global_Sales = 0.93)
+naruto$pred <- predict(model_final, newdata = naruto)
+predict(model_final, newdata = naruto, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 0.57 a 0.63 mln kopii z najbardziej prawdopodobną wartością - 0.60 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 0.93 mln kopii - czyli zdecydowanie więcej niż przewidział nasz model
+
+# kolejny przykład - Bioshock 2 (2010) (Opinia Krytyków - 88) (https://www.metacritic.com/game/bioshock-2)
+bioshock <- data.frame(Critic_Score = 8.8, Name = "Bioshock 2", Global_Sales = 1.54)
+bioshock$pred <- predict(model_final, newdata = cod)
+predict(model_final, newdata = cod, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 1.02 a 1.16 mln kopii z najbardziej prawdopodobną wartością - 1.09 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 9.36 mln kopii
+
+new_data <- rbind(rock_band, naruto, bioshock)
+
+ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point(data = new_data, color = "green", size = 3) +
+  geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
+  geom_line(aes(y = pred), linewidth = 1, color = "red") +
+  geom_label_repel(data = new_data, aes(label = Name), box.padding = 0.35, point.padding = 0.5, segment.color = "gray50") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
