@@ -520,9 +520,8 @@ data_clear_critic_user <- data_clear_critic_user %>%
 # na tym etapie dane są już czyste, 
 # wybieramy zmienne do modelu regresji
 regression_data <- data_clear_critic_user %>% 
-  select(Critic_Score, User_Score, Global_Sales, Platform, Year_of_Release) %>% 
-  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
-  filter(Global_Sales < 20)
+  select(Critic_Score, User_Score, Global_Sales, Platform) %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC"))
 
 
 ggplot(data_clear_critic_user, aes(x = Critic_Score)) + 
@@ -545,11 +544,30 @@ ggplot(data_clear_critic_user, aes(x = User_Score)) +
   labs(title = "Histogram ocen użytkowników") +
   theme_minimal()
 
+
+# pozbycie się outlierów z danych, tak jak w przypadku klastrowania
+IQR <- IQR(regression_data$Critic_Score)
+low <- quantile(regression_data$Critic_Score, 0.25) - 1.5*IQR
+up <- quantile(regression_data$Critic_Score, 0.75) + 1.5*IQR
+outliers <- which(regression_data$Critic_Score < low | regression_data$Critic_Score > up)
+regression_data <- regression_data[-outliers, ]
+IQR <- IQR(regression_data$User_Score)
+low <- quantile(regression_data$User_Score, 0.25) - 1.5*IQR
+up <- quantile(regression_data$User_Score, 0.75) + 1.5*IQR
+outliers <- which(regression_data$User_Score < low | regression_data$User_Score > up)
+regression_data <- regression_data[-outliers, ]
+IQR <- IQR(regression_data$Global_Sales)
+low <- quantile(regression_data$Global_Sales, 0.25) - 1.5*IQR
+up <- quantile(regression_data$Global_Sales, 0.75) + 1.5*IQR
+outliers <- which(regression_data$Global_Sales < low | regression_data$Global_Sales > up)
+regression_data <- regression_data[-outliers, ]
+
 # =====================
 
 # w porównaniu histogramu ocen krytyków i użytkowników widać, że oceny krytyków znacznie lepiej wpisują się w rozkład normalny
 # na boxplotach również nie zauważamy dużych wartości odstających, wszystkie mieszczą się w przedziale 0-10, jednak znaczna większość ocen jest w przedziale 6-8 w przypadku zarówno krytyków jak i użytkowników.
 
+# zobaczmy jak wyglądają trendy na poszczególnych systemach gier
 regression_data %>% 
   ggplot(aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
@@ -558,83 +576,95 @@ regression_data %>%
   geom_smooth(method = "lm", color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną na poszczególnych systemach gier", x = "Ocena krytyków", y = "Sprzedaż globalna")+
   facet_wrap(~Platform, nrow = 4)
+# najlepszego modelu regresji można się spodziewać w przypadku PS2, PS3 i X360, gdzie zależność wydaje się być liniowa
 
+# i jeszcze dla ocen użytkowników
 regression_data %>% 
   ggplot(aes(x = User_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
-  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", color = "red") +
   labs(title = "Wpływ ocen użytkowników na sprzedaż globalną na poszczególnych systemach gier", x = "Ocena użytkowników", y = "Sprzedaż globalna") +
   facet_wrap(~Platform, nrow = 4)
+# najlepsza wydaje się być zależność dla PS3
+# dla obu zmiennych zależność wydaje się być liniowa dla PS3 więc dokładniejszą analizę przeprowadzimy na danych dotyczących PS3
+regression_data_ps3 <- regression_data %>% 
+  filter(Platform == "PS3")
 
-regression_data_ps2 <- regression_data %>% 
-  filter(Platform == "PS2")
+# Spróbujmy najpierw z ocenami użytkowników
+model_user_ps3 <- lm(Global_Sales ~ User_Score, data = regression_data_ps3)
+summary(model_user_ps3)
+# model wyjaśnia zaledwie 7.7% wariancji danych, co jest bardzo niskim wynikiem, przejdźmy więc dalej
 
-model_exp_critic_ps2 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
-summary(model_exp_critic_ps2)
-regression_data_ps2$pred_critic <- predict(model_exp_critic_ps2, newdata = regression_data_ps2)
+# Spróbujmy z ocenami krytyków
+model_critic_ps3 <- lm(Global_Sales ~ Critic_Score, data = regression_data_ps3)
+summary(model_critic_ps3)
+# ten model wyjaśnia już 27.2% wariancji danych, co jest znacznie lepszym wynikiem, przejdźmy więc dalej
+regression_data_ps3$pred_linear <- predict(model_critic_ps3, newdata = regression_data_ps3)
 
-ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
+ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
-  geom_line(aes(y = pred_critic), linewidth = 1, color = "red") +
-  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+  geom_line(aes(y = pred_linear), linewidth = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+# model wizualnie nie wygląda na dobrze dopasowany, spróbujmy użyć funkcji eksponencjalnej
 
+
+model_exp_critic_ps3 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps3)
+summary(model_exp_critic_ps3)
+# model eksponencjalny wyjaśnia 27.5% wariancji danych, co jest bardzo zbliżonym wynikiem do modelu liniowego, sprawdźmy więc wizualnie
+regression_data_ps3$pred_exp <- predict(model_exp_critic_ps3, newdata = regression_data_ps3)
+
+ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_line(aes(y = pred_exp), linewidth = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+# model wizualnie wygląda na lepiej dopasowany, sprawdźmy jeszcze statystyki
 
 par(mfrow = c(2,2))
 par(mar = c(3,3,2,2))
 
-plot(model_exp_critic_ps2)
+plot(model_exp_critic_ps3)
+durbinWatsonTest(model_exp_critic_ps3)
+# autokorelacja wysoka - 0.76
 
-regression_data_ps2 <- regression_data_ps2 %>% 
-  filter(Global_Sales < 10)
-
-model_exp_critic_ps2 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
-summary(model_exp_critic_ps2)
-
-plot(model_exp_critic_ps2)
-durbinWatsonTest(model_exp_critic_ps2)
-# mocna autokorelacja dodatnia danych
-
-model_exp_user_ps2 <- lm(Global_Sales ~ exp(User_Score), data = regression_data_ps2)
-summary(model_exp_user_ps2)
-plot(model_exp_user_ps2)
-durbinWatsonTest(model_exp_user_ps2)
-# jeszcze większa autokorelacja danych
-
-model_exp_critic_user_ps2 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
-summary(model_exp_critic_user_ps2)
-plot(model_exp_critic_user_ps2)
-durbinWatsonTest(model_exp_critic_user_ps2)
-# nadal bardzo silna autokorelacja dodatnia danych, chociaż mniejsza niż w przypadku pojedynczych zmiennych
+# spróbujmy dodać do modelu oceny użytkowników
+model_exp_critic_user_ps3 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps3)
+summary(model_exp_critic_user_ps3)
+# model nadal wyjaśnia 27.5% wariancji danych
+plot(model_exp_critic_user_ps3)
+durbinWatsonTest(model_exp_critic_user_ps3)
+# nadal bardzo silna autokorelacja dodatnia danych, chociaż mniejsza niż w przypadku pojedynczych zmiennych - 0.76
 
 par(mfrow = c(1, 1))
 
-model_exp <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps2)
+model_exp <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps3)
 summary(model_exp)
 # zmienna User_Score jest nieistotna statystycznie - nie ma rzeczywistego wpływu na sprzedaż globalną
 durbinWatsonTest(model_exp)
-# autokorelacja jest na poziomie 0.7 - bardzo wysoka
+# autokorelacja jest na poziomie 0.76 - wysoka
 shapiro.test(model_exp$residuals)
 # według testu Shapiro-Wilka rozkład reszt znacząco odbiega od rozkładu normalnego
 hist(model_exp$residuals, main = "Histogram Reszt", xlab = "Reszty", breaks = 30)
 # histogram reszt również wskazuje na to, że nie są one zbyt dobrze rozłożone
 # możemy wrócić model do jednej zmiennej - oceny krytyków
 
-model_final <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
-regression_data_ps2$pred <- predict(model_exp, newdata = regression_data_ps2)
+model_final <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps3)
+regression_data_ps3$pred <- predict(model_final, newdata = regression_data_ps3)
 summary(model_final)
 par(mfrow = c(2,2))
 par(mar = c(3,3,2,2))
 plot(model_final)
 par(mfrow = c(1, 1))
 
-ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
+ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
-  geom_line(aes(y = pred), size = 1, color = "red") +
-  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
+  geom_line(aes(y = pred), linewidth = 1, color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
 
