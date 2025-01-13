@@ -250,6 +250,43 @@ hist(data$Critic_Score, breaks = 10, col = "#a9dfd0", main = "Critic Review Scor
 # Histogram sprzedaży globalnych
 hist(data$Global_Sales , breaks = 100, prob = T, col = "#a9dfd0", main = "Density of Global Sales", xlab = "Units Sold Globally (in Millions)")
 
+# Porównania konsol na prezke 
+data %>%
+  filter(Platform=="PC") %>%
+  ggplot(aes(x=Critic_Score))+
+  geom_histogram(binwidth = 2, fill = "#a9dfd0") +
+  labs(x = "Critic Score", y = "Frequency")
+
+data %>%
+  filter(Platform=="PC") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2, fill = "#a9dfd0") +
+  labs(x = "User Score", y = "Frequency")
+
+data %>%
+  filter(Platform=="PS4") %>%
+  ggplot(aes(x=Critic_Score))+
+  geom_histogram(binwidth = 2, fill = "#a9dfd0") +
+  labs(x = "Critic Score", y = "Frequency")
+
+data %>%
+  filter(Platform=="PS4") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2, fill = "#a9dfd0") +
+  labs(x = "User Score", y = "Frequency")
+
+data %>%
+  filter(Platform=="XOne") %>%
+  ggplot(aes(x=Critic_Score))+
+  geom_histogram(binwidth = 2, fill = "#a9dfd0") +
+  labs(x = "Critic Score", y = "Frequency")
+
+data %>%
+  filter(Platform=="XOne") %>%
+  ggplot(aes(x=User_Score))+
+  geom_histogram(binwidth = 0.2, fill = "#a9dfd0") +
+  labs(x = "User Score", y = "Frequency")
+
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
