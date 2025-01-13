@@ -9,3 +9,9 @@ Oprócz kodu z zajęć, w kodzie czystym analizy można znaleźć:
 
 Używamy danych danych z: <br>
 https://www.kaggle.com/datasets/rush4ratio/video-game-sales-with-ratings
+
+### Autorzy
+[Bartosz Kluza](https://github.com/BKluza)
+[Jan Cudziło](https://github.com/JCudzilo)
+[Kacper Siembab](https://github.com/Shaking-Donut)
+[Patryk Szostak](https://github.com/Patryk4804)
