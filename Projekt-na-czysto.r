@@ -235,6 +235,13 @@ data_yor %>%
   labs(title = "Game Release Date", x = "Year", y = "Frequency") +
   theme_minimal()
 
+# User count  histogram
+hist(data$User_Count, breaks = 60, col = "#a9dfd0", main = "Number of User Reviews", xlab = "User Count")
+# A co jeśli by to odciąć od góry
+hist(data$User_Count[data$User_Count <= 500], breaks = 60, col = "#a9dfd0", main = "Number of User Reviews", xlab = "User Count")
+
+# Critic count histogram
+hist(data$Critic_Count, breaks = 60, col = "#a9dfd0", main = "Number of Critic Reviews", xlab = "Critic Count")
 
 #===========================================================================================================
 #===========================================================================================================
