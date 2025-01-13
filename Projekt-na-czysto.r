@@ -380,9 +380,9 @@ data_clear_all %>%
   filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
   ggplot (aes(x=User_Score, y=Year_of_Release))+
   geom_point()+
-  geom_smooth(method = "lm")+
   geom_pointdensity() +
   scale_color_viridis() +
+  geom_smooth(method = "lm", color = "red")+
   facet_wrap(~Platform, nrow = 4)
 
 #Ciekawym wydaje się fakt, że jedynie na PC, korelacja jest zauważalnie wysoka (z lekkim wyjątkiem PS1), co oznacza że na komputerach osobistych gracze stają się z czasem zauważalnie bardziej krytyczni niż na konsolach
@@ -520,7 +520,9 @@ data_clear_critic_user <- data_clear_critic_user %>%
 # na tym etapie dane są już czyste, 
 # wybieramy zmienne do modelu regresji
 regression_data <- data_clear_critic_user %>% 
-  select(Critic_Score, User_Score, Global_Sales, Platform, Year_of_Release)
+  select(Critic_Score, User_Score, Global_Sales, Platform, Year_of_Release) %>% 
+  filter(Platform %in% c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")) %>% 
+  filter(Global_Sales < 20)
 
 
 ggplot(data_clear_critic_user, aes(x = Critic_Score)) + 
@@ -548,25 +550,26 @@ ggplot(data_clear_critic_user, aes(x = User_Score)) +
 # w porównaniu histogramu ocen krytyków i użytkowników widać, że oceny krytyków znacznie lepiej wpisują się w rozkład normalny
 # na boxplotach również nie zauważamy dużych wartości odstających, wszystkie mieszczą się w przedziale 0-10, jednak znaczna większość ocen jest w przedziale 6-8 w przypadku zarówno krytyków jak i użytkowników.
 
-c("PS2", "DS", "PS3", "Wii", "X360", "PSP", "PS", "PC")
+regression_data %>% 
+  ggplot(aes(x = Critic_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Wpływ ocen krytyków na sprzedaż globalną na poszczególnych systemach gier", x = "Ocena krytyków", y = "Sprzedaż globalna")+
+  facet_wrap(~Platform, nrow = 4)
+
+regression_data %>% 
+  ggplot(aes(x = User_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_smooth(method = "lm") +
+  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną na poszczególnych systemach gier", x = "Ocena użytkowników", y = "Sprzedaż globalna") +
+  facet_wrap(~Platform, nrow = 4)
 
 regression_data_ps2 <- regression_data %>% 
-  filter(Platform == "PS2") %>% 
-  na.omit()
-
-ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
-  geom_point() +
-  geom_pointdensity() +
-  scale_color_viridis() +
-  geom_smooth(method = "lm") +
-  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
-
-ggplot(data = regression_data_ps2, aes(x = User_Score, y = Global_Sales)) +
-  geom_point() +
-  geom_pointdensity() +
-  scale_color_viridis() +
-  geom_smooth(method = "lm") +
-  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną - PS2", x = "Ocena użytkowników", y = "Sprzedaż globalna")
+  filter(Platform == "PS2")
 
 model_exp_critic_ps2 <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
 summary(model_exp_critic_ps2)
@@ -576,7 +579,7 @@ ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
   geom_pointdensity() +
   scale_color_viridis() +
-  geom_line(aes(y = pred_critic), size = 1, color = "red") +
+  geom_line(aes(y = pred_critic), linewidth = 1, color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS2", x = "Ocena krytyków", y = "Sprzedaż globalna")
 
 
@@ -584,7 +587,6 @@ par(mfrow = c(2,2))
 par(mar = c(3,3,2,2))
 
 plot(model_exp_critic_ps2)
-regression_data_ps2
 
 regression_data_ps2 <- regression_data_ps2 %>% 
   filter(Global_Sales < 10)
@@ -621,8 +623,13 @@ hist(model_exp$residuals, main = "Histogram Reszt", xlab = "Reszty", breaks = 30
 # histogram reszt również wskazuje na to, że nie są one zbyt dobrze rozłożone
 # możemy wrócić model do jednej zmiennej - oceny krytyków
 
-model_exp <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
+model_final <- lm(Global_Sales ~ exp(Critic_Score), data = regression_data_ps2)
 regression_data_ps2$pred <- predict(model_exp, newdata = regression_data_ps2)
+summary(model_final)
+par(mfrow = c(2,2))
+par(mar = c(3,3,2,2))
+plot(model_final)
+par(mfrow = c(1, 1))
 
 ggplot(data = regression_data_ps2, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point() +
