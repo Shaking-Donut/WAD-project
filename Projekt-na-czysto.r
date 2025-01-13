@@ -219,7 +219,7 @@ data %>% group_by(Platform) %>% summarize(count=n()) %>% arrange(desc(count)) %>
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
-#GGPLOTY I INNE
+# HISTOGRAMY, GGPLOTY I INNE DO PREZENTOWANIA
 
 # Rozkład gier w czasie tylko se zmieniam na prezke
 hist(data$Year_of_Release, breaks = 40, col = "#a9dfd0", main = "Game Release Date", xlab = "Year") 
@@ -242,6 +242,13 @@ hist(data$User_Count[data$User_Count <= 500], breaks = 60, col = "#a9dfd0", main
 
 # Critic count histogram
 hist(data$Critic_Count, breaks = 60, col = "#a9dfd0", main = "Number of Critic Reviews", xlab = "Critic Count")
+
+# Histogram ocen krytyków / użytkowników 
+hist(data$User_Score, breaks = 10, col = "#a9dfd0", main = "User Review Scores", xlab = "User Score")
+hist(data$Critic_Score, breaks = 10, col = "#a9dfd0", main = "Critic Review Scores", xlab = "Critic Score")
+
+# Histogram sprzedaży globalnych
+hist(data$Global_Sales , breaks = 100, prob = T, col = "#a9dfd0", main = "Density of Global Sales", xlab = "Units Sold Globally (in Millions)")
 
 #===========================================================================================================
 #===========================================================================================================
