@@ -221,7 +221,13 @@ data %>% group_by(Platform) %>% summarize(count=n()) %>% arrange(desc(count)) %>
 #===========================================================================================================
 #GGPLOTY I INNE
 
+# Rozkład gier w czasie tylko se zmieniam na prezke
+hist(data$Year_of_Release, breaks = 40, col = "#a9dfd0", main = "Game Release Date", xlab = "Year") 
 
+# troche głupie ale byłem ciekaw, bo jest inna dystrybucja co jest dziwne
+data %>% 
+  ggplot(aes(x=Year_of_Release))+
+  geom_histogram()
 #===========================================================================================================
 #===========================================================================================================
 #===========================================================================================================
@@ -455,6 +461,7 @@ up <- quantile(wybrane2$Global_Sales, 0.75) + 1.5*IQR
 outliers <- which(wybrane2$Global_Sales < low | wybrane2$Global_Sales > up)
 wybrane2 <- wybrane2[-outliers, ]
 wybrane2 <- scale(wybrane2)
+set.seed(3)
 gap <- clusGap(wybrane2, pam, K.max = 8, B=50)
 fviz_gap_stat(gap)
 wyniki3 <- pam(wybrane2, 3)
