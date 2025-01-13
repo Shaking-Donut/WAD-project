@@ -755,5 +755,5 @@ ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point(data = new_data, color = "green", size = 3) +
   geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
   geom_line(aes(y = pred), linewidth = 1, color = "red") +
-  geom_label_repel(data = new_data, aes(label = Name), box.padding = 0.35, point.padding = 0.5, segment.color = "gray50") +
+  geom_label_repel(data = new_data, aes(label = Name), box.padding = 0.35, point.padding = 0.5) +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
