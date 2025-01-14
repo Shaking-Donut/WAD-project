@@ -654,7 +654,7 @@ ggplot(data = regression_data_ps3, aes(x = User_Score, y = Global_Sales)) +
   geom_pointdensity() +
   scale_color_viridis() +
   geom_line(aes(y = pred_linear), linewidth = 1, color = "red") +
-  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną - PS3", x = "Ocena użytkowników", y = "Sprzedaż globalna")
 
 # Spróbujmy z ocenami krytyków
 model_critic_ps3 <- lm(Global_Sales ~ Critic_Score, data = regression_data_ps3)
