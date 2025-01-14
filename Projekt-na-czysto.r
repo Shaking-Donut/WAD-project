@@ -751,16 +751,45 @@ predict(model_final, newdata = naruto, interval = "confidence")
 
 # kolejny przykład - Bioshock 2 (2010) (Opinia Krytyków - 88) (https://www.metacritic.com/game/bioshock-2)
 bioshock <- data.frame(Critic_Score = 8.8, Name = "Bioshock 2", Global_Sales = 1.54)
-bioshock$pred <- predict(model_final, newdata = cod)
-predict(model_final, newdata = cod, interval = "confidence")
+bioshock$pred <- predict(model_final, newdata = bioshock)
+predict(model_final, newdata = bioshock, interval = "confidence")
 # według naszego modelu ta gra powinna sprzedać pomiędzy 1.02 a 1.16 mln kopii z najbardziej prawdopodobną wartością - 1.09 mln
 # wartość sprzedaży tej gry w rzeczywistości wynosiła 1.54 mln kopii
 
-new_data <- rbind(rock_band, naruto, bioshock)
+#kolejny przykład - Mass Effect 2 (2011) (Opinia Krytyków - 94) (https://www.metacritic.com/game/mass-effect-2
+mass_effect <- data.frame(Critic_Score = 9.4, Name = "Mass Effect 2", Global_Sales = 1.45)
+mass_effect$pred <- predict(model_final, newdata = mass_effect)
+predict(model_final, newdata = mass_effect, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 1.55 a 1.84 mln kopii z najbardziej prawdopodobną wartością - 1.69 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 1.45 mln kopii
+
+# kolejny przykład - Warhawk (2007) (Opinia Krytyków - 84) (https://www.metacritic.com/game/warhawk)
+warhawk <- data.frame(Critic_Score = 8.4, Name = "Warhawk", Global_Sales = 1.06)
+warhawk$pred <- predict(model_final, newdata = warhawk)
+predict(model_final, newdata = warhawk, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 0.80 a 0.89 mln kopii z najbardziej prawdopodobną wartością - 0.85 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 1.06 mln kopii
+
+# kolejny przykład - F1 2014 (2014) (Opinia Krytyków - 62) (https://www.metacritic.com/game/f1-2014)
+f1 <- data.frame(Critic_Score = 6.2, Name = "F1 2014", Global_Sales = 0.41)
+f1$pred <- predict(model_final, newdata = f1)
+predict(model_final, newdata = f1, interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 0.37 a 0.45 mln kopii z najbardziej prawdopodobną wartością - 0.41 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 0.41 mln kopii
+
+# kolejny przykład - Iron Man 2 (2010) (Opinia Krytyków - 41) (https://www.metacritic.com/game/iron-man-2)
+iron_man <- data.frame(Critic_Score = 4.1, Name = "Iron Man 2", Global_Sales = 0.39)
+iron_man$pred <- predict(model_final, newdata = iron_man)
+predict(model_final, newdata = data.frame(Critic_Score = 4.1), interval = "confidence")
+# według naszego modelu ta gra powinna sprzedać pomiędzy 0.32 a 0.40 mln kopii z najbardziej prawdopodobną wartością - 0.36 mln
+# wartość sprzedaży tej gry w rzeczywistości wynosiła 0.40 mln kopii
+
+new_data <- rbind(rock_band, naruto, bioshock, mass_effect, warhawk, f1, iron_man)
 
 ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_point(data = new_data, color = "green", size = 3) +
   geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
   geom_line(aes(y = pred), linewidth = 1, color = "red") +
   geom_label_repel(data = new_data, aes(label = Name), box.padding = 0.35, point.padding = 0.5) +
-  labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+  labs(title = "Przykłady gier - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
