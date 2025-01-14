@@ -647,11 +647,19 @@ regression_data_ps3 <- regression_data %>%
 model_user_ps3 <- lm(Global_Sales ~ User_Score, data = regression_data_ps3)
 summary(model_user_ps3)
 # model wyjaśnia zaledwie 7.7% wariancji danych, co jest bardzo niskim wynikiem, przejdźmy więc dalej
+regression_data_ps3$pred_linear <- predict(model_user_ps3, newdata = regression_data_ps3)
+
+ggplot(data = regression_data_ps3, aes(x = User_Score, y = Global_Sales)) +
+  geom_point() +
+  geom_pointdensity() +
+  scale_color_viridis() +
+  geom_line(aes(y = pred_linear), linewidth = 1, color = "red") +
+  labs(title = "Wpływ ocen użytkowników na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
 
 # Spróbujmy z ocenami krytyków
 model_critic_ps3 <- lm(Global_Sales ~ Critic_Score, data = regression_data_ps3)
 summary(model_critic_ps3)
-# ten model wyjaśnia już 27.2% wariancji danych, co jest znacznie lepszym wynikiem, przejdźmy więc dalej
+# ten model wyjaśnia już 27.2% wariancji danych, co jest znacznie lepszym wynikiem, przejdźmy więc dalej z modelem bazującym na opiniach krytyków
 regression_data_ps3$pred_linear <- predict(model_critic_ps3, newdata = regression_data_ps3)
 
 ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
@@ -682,25 +690,22 @@ par(mar = c(3,3,2,2))
 plot(model_exp_critic_ps3)
 durbinWatsonTest(model_exp_critic_ps3)
 # autokorelacja wysoka - 0.76
+shapiro.test(residuals(model_exp_critic_ps3))
+# według testu Shapiro-Wilka rozkład reszt znacząco odbiega od rozkładu normalnego
 
 # spróbujmy dodać do modelu oceny użytkowników
-model_exp_critic_user_ps3 <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps3)
-summary(model_exp_critic_user_ps3)
-# model nadal wyjaśnia 27.5% wariancji danych
-plot(model_exp_critic_user_ps3)
-durbinWatsonTest(model_exp_critic_user_ps3)
-# nadal bardzo silna autokorelacja dodatnia danych, chociaż mniejsza niż w przypadku pojedynczych zmiennych - 0.76
-
-par(mfrow = c(1, 1))
-
 model_exp <- lm(Global_Sales ~ exp(Critic_Score) + exp(User_Score), data = regression_data_ps3)
 summary(model_exp)
+# model nadal wyjaśnia 27.5% wariancji danych
 # zmienna User_Score jest nieistotna statystycznie - nie ma rzeczywistego wpływu na sprzedaż globalną
+plot(model_exp)
 durbinWatsonTest(model_exp)
 # autokorelacja jest na poziomie 0.76 - wysoka
 shapiro.test(model_exp$residuals)
+par(mfrow = c(1, 1))
+par(mar = c(5,4,4,2) + 0.1)
 # według testu Shapiro-Wilka rozkład reszt znacząco odbiega od rozkładu normalnego
-hist(model_exp$residuals, main = "Histogram Reszt", xlab = "Reszty", breaks = 30)
+hist(model_exp$residuals, main = "Histogram Reszt", xlab = "Reszty", breaks = 30, col = "#a9dfd0")
 # histogram reszt również wskazuje na to, że nie są one zbyt dobrze rozłożone
 # możemy wrócić model do jednej zmiennej - oceny krytyków
 
@@ -727,6 +732,8 @@ ggplot(data = regression_data_ps3, aes(x = Critic_Score, y = Global_Sales)) +
   geom_ribbon(aes(ymin = conf_data$conf_low, ymax = conf_data$conf_high), fill = "red", alpha = 0.2) +
   geom_line(aes(y = pred), linewidth = 1, color = "red") +
   labs(title = "Wpływ ocen krytyków na sprzedaż globalną - PS3", x = "Ocena krytyków", y = "Sprzedaż globalna")
+
+
 
 # przykład predykcji na przykładzie grę, która nie wchodzi w nasz model - Rock Band 2 (2008) (Opinia Krytyków - 91) (https://www.metacritic.com/game/rock-band-2/)
 rock_band <- data.frame(Critic_Score = 9.1, Name = "Rock Band 2", Global_Sales = 1.49)
